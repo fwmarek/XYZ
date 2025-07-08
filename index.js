@@ -8,12 +8,12 @@ const {
   ActivityType,
   Events,
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle
+  ButtonBuilder
 } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const { PaymentChange } = require('./payment-change');
+const qc = require('./qc'); 
 
 global.payment_options = [
   ['Payment Option 1', '135567835051550'],
@@ -55,7 +55,6 @@ if (fs.existsSync(commandsPath)) {
 
     if ('data' in command && 'execute' in command) {
       if (Array.isArray(command.data)) {
-        // For multi-command exports like music.js
         for (const subCmd of command.data) {
           client.commands.set(subCmd.name, { ...command, data: subCmd });
           commands.push(subCmd.toJSON());
@@ -69,6 +68,9 @@ if (fs.existsSync(commandsPath)) {
     }
   }
 }
+
+commands.push(qc.data.toJSON());
+client.commands.set('qc', qc);
 
 const tryLoadEvent = (file) => {
   const eventPath = path.join(__dirname, file);
@@ -135,8 +137,10 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (interaction.isButton()) {
-      const { customId, message } = interaction;
+      const handled = await qc.handleInteraction(interaction);
+      if (handled) return;
 
+      const { customId, message } = interaction;
       if (customId === 'suggest_approve' || customId === 'suggest_deny') {
         const row = message.components[0];
         const newRow = new ActionRowBuilder();
