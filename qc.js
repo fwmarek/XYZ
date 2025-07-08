@@ -68,6 +68,8 @@ module.exports = {
       autoArchiveDuration: 60
     });
 
+    await thread.send('.');
+
     interaction.client.qcCache ??= {};
     interaction.client.qcCache[qcMsg.id] = {
       requesterId: requester.id,
@@ -92,6 +94,7 @@ module.exports = {
     }
 
     const isApproved = interaction.customId === 'qc_approve';
+
     const updatedEmbed = EmbedBuilder.from(interaction.message.embeds[1]);
     updatedEmbed.data.fields = updatedEmbed.data.fields.map(f =>
       f.name === 'QC Status'
